@@ -1,12 +1,12 @@
 use pyo3::prelude::*;
-use std::slice::from_raw_parts_mut;
+use rand::{self, distributions::Uniform, Rng};
+use std::{ptr::copy_nonoverlapping, slice::from_raw_parts_mut};
 use vec::Float3;
 
 mod vec;
 
 const G: f32 = 10.0;
 const FRAME_TIME: f32 = 1.0 / 24.0;
-
 
 #[pyfunction]
 fn simulate(position_ptr: usize, size: usize, velocity_ptr: usize) {
@@ -15,7 +15,6 @@ fn simulate(position_ptr: usize, size: usize, velocity_ptr: usize) {
 
     let ptr = velocity_ptr as *mut Float3;
     let velocity = unsafe { from_raw_parts_mut(ptr, size) };
-
 
     let masss = [0.0, 1.0];
 
@@ -37,9 +36,21 @@ fn simulate(position_ptr: usize, size: usize, velocity_ptr: usize) {
     }
 }
 
+#[pyfunction]
+fn copyposition(position_ptr: usize) {
+    let destptr = position_ptr as *mut f32;
+    let mut rng = rand::thread_rng();
+    let numbers: Vec<f32> = (0..1000000 * 3)
+        .map(|_| rng.sample(Uniform::new(0.0, 1.0)))
+        .collect();
+    unsafe {
+        copy_nonoverlapping(numbers.as_ptr(), destptr, 1000000 * 3);
+    }
+}
 
 #[pymodule]
 fn nbody(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(simulate, m)?)?;
+    m.add_function(wrap_pyfunction!(copyposition, m)?)?;
     Ok(())
 }
