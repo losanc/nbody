@@ -40,6 +40,7 @@ fn simulate(position_ptr: usize, size: usize, velocity_ptr: usize) {
 fn copyposition(position_ptr: usize) {
     let destptr = position_ptr as *mut f32;
     let mut rng = rand::thread_rng();
+    // hard coded 1m particles
     let numbers: Vec<f32> = (0..1000000 * 3)
         .map(|_| rng.sample(Uniform::new(0.0, 1.0)))
         .collect();
